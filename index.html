@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Übungsblatt Terme zusammenfassen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=STIX+Two+Text:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: eine Spalte; Kopf mit Name und Zeit, Reiter je Thema, Aufgabenkarten mit Statusstreifen, Urkunde als Ergebnisseite */
+  --bg:#eef2f6; --card:#ffffff; --ink:#17212c; --muted:#56657a; --line:#d3dbe5;
+  --accent:#1d5c8c; --accent-ink:#ffffff; --accent-soft:#e1edf7;
+  --merke:#fff6cf; --merke-line:#e7c84a;
+  --ok:#1d7148; --ok-bg:#e2f3e9; --bad:#b0352d; --bad-bg:#fbe8e5; --warn:#7d5400; --warn-bg:#fff2d2;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --math:"STIX Two Text","Cambria Math",Cambria,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151c; --card:#19212b; --ink:#e6ecf2; --muted:#9dabbb; --line:#2c3846;
+    --accent:#72b2e8; --accent-ink:#0c1a27; --accent-soft:#1d3346;
+    --merke:#2f2a14; --merke-line:#8a7424;
+    --ok:#74d6a2; --ok-bg:#15301f; --bad:#ff8f84; --bad-bg:#3a1b19; --warn:#ffd27a; --warn-bg:#352a10;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151c; --card:#19212b; --ink:#e6ecf2; --muted:#9dabbb; --line:#2c3846;
+  --accent:#72b2e8; --accent-ink:#0c1a27; --accent-soft:#1d3346;
+  --merke:#2f2a14; --merke-line:#8a7424;
+  --ok:#74d6a2; --ok-bg:#15301f; --bad:#ff8f84; --bad-bg:#3a1b19; --warn:#ffd27a; --warn-bg:#352a10;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.5 var(--body)}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 60px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(26px,4.5vw,36px);font-weight:800}
+h2{font-size:24px;font-weight:800}
+.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+.top p{margin:4px 0 0;color:var(--muted)}
+.who{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.who label{display:flex;flex-direction:column;font-size:14px;color:var(--muted);gap:4px}
+.who input{font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:220px}
+.clock{font-variant-numeric:tabular-nums;background:var(--card);border:2px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:700}
+.rules{font-size:15px;color:var(--muted);margin:12px 0 16px}
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:2px solid var(--line);margin-bottom:18px}
+.tab{font:700 15px var(--body);border:2px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.badge{font-size:12px;font-variant-numeric:tabular-nums;border-radius:20px;padding:1px 7px;background:var(--accent-soft);color:var(--ink)}
+.tab[aria-selected="true"] .badge{background:rgba(255,255,255,.25);color:inherit}
+.badge.full{background:var(--ok-bg);color:var(--ok)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.merke{background:var(--merke);border-left:6px solid var(--merke-line);border-radius:8px;padding:12px 16px;margin:0 0 18px}
+.merke b:first-child{font-family:var(--display)}
+.m{font-family:var(--math);font-size:1.08em;white-space:nowrap}
+.tasks{display:grid;gap:14px}
+.task{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:10px}
+.task.right{border-left-color:var(--ok)}
+.task.wrong,.task.solution{border-left-color:var(--bad)}
+.thead{display:flex;gap:12px;align-items:flex-start}
+.tnum{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font-weight:700}
+.thead .q{flex:1;min-width:0}
+.prompt{margin:2px 0 4px;font-weight:700}
+.expr{font-family:var(--math);font-size:24px;line-height:1.35;overflow-wrap:anywhere}
+.pill{flex:none;font-size:13px;font-weight:700;border-radius:20px;padding:3px 10px;background:var(--accent-soft);color:var(--muted)}
+.pill.right{background:var(--ok-bg);color:var(--ok)}
+.pill.wrong,.pill.solution{background:var(--bad-bg);color:var(--bad)}
+.inrow{display:flex;gap:8px;flex-wrap:wrap}
+.inrow input{flex:1 1 220px;font:22px var(--math);padding:8px 12px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.btn{font:700 15px var(--body);padding:9px 16px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.keys{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--muted)}
+.key{font:22px/1.1 var(--math);min-width:42px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);cursor:pointer}
+.preview{font-size:14px;color:var(--muted)}
+.preview .m{color:var(--ink);font-size:20px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{font:20px var(--math);padding:8px 14px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt.is-right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.is-wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.yn,.opt.word{font:700 16px var(--body);min-width:90px}
+.fb{margin:0;padding:8px 12px;border-radius:8px;font-size:16px}
+.fb:empty{display:none}
+.fb.right{background:var(--ok-bg);color:var(--ok)}
+.fb.wrong{background:var(--bad-bg);color:var(--bad)}
+.fb.almost,.fb.info{background:var(--warn-bg);color:var(--warn)}
+.helps{display:flex;gap:8px;flex-wrap:wrap}
+.hbtn{font:700 14px var(--body);padding:6px 12px;border-radius:20px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
+.hbtn:disabled{opacity:.55;cursor:not-allowed}
+.hbox{background:var(--accent-soft);border-radius:8px;padding:10px 14px}
+.hbox b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.hbox.sol{background:var(--bad-bg)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tablewrap{overflow-x:auto}
+table.res{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;background:var(--card)}
+table.res th,table.res td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:right;white-space:nowrap}
+table.res th:first-child,table.res td:first-child{text-align:left}
+table.res tfoot td{font-weight:700}
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
+.lv{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;gap:10px;align-items:center;font-size:14px}
+.lv svg{width:46px;height:46px;flex:none}
+.submit{display:grid;gap:10px;margin-top:16px}
+.cert{margin-top:20px;background:#fffdf6;color:#1c2633;border:10px double #1f4e79;border-radius:6px;padding:28px 22px;text-align:center;display:grid;gap:8px;justify-items:center}
+.cert .kick{font:800 46px var(--display);letter-spacing:.02em;color:#1f4e79}
+.cert .nm{font:700 30px var(--body)}
+.cert .award svg{width:170px;height:170px}
+.cert .lvl{font:800 26px var(--display)}
+.cert table.res{background:transparent;max-width:620px;color:#1c2633}
+.cert table.res th,.cert table.res td{border-color:#d9d2bd}
+.cert .meta{color:#4c5a6b;font-size:15px}
+section[hidden]{display:none}
+@media (max-width:520px){.expr{font-size:21px}.who input{min-width:0;width:100%}.who{width:100%}.who label{flex:1}}
+@media (prefers-reduced-motion:no-preference){.task{transition:border-color .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Terme zusammenfassen</h1>
+      <p>Potenzen · Gleichartige Terme · Addition und Subtraktion</p>
+    </div>
+    <div class="who">
+      <label for="name">Dein Name<input id="name" autocomplete="off" placeholder="Vor- und Nachname"></label>
+      <div class="clock" aria-label="Bearbeitungszeit"><span id="clock">00:00</span></div>
+    </div>
+  </header>
+  <p class="rules">Jede Aufgabe gibt einen Punkt. Hilfe 1 wird nach 30 Sekunden frei, Hilfe 2 und die Lösung jeweils 30 Sekunden nach der vorherigen Hilfe. Jede Hilfe kostet ¼ Punkt, eine angesehene Lösung den ganzen Punkt. Hochzahlen tippst du mit <span class="m">^</span> (z. B. <span class="m">a^2</span> für <span class="m">a²</span>) oder mit den Knöpfen unter dem Eingabefeld.</p>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="main"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+"use strict";
+// LOGIC START
+const LOCK = 30;
+const SUPD = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const nz = (lo, hi) => { let c; do { c = rnd(-hi, hi); } while (Math.abs(c) < lo); return c; };
+const sup = n => String(n).split("").map(d => SUPD[+d]).join("");
+const supE = n => n === 1 ? "" : sup(n);
+const fmtNum = c => String(Math.round(c * 1000) / 1000).replace(".", ",").replace("-", "−");
+const M = (c, ...v) => ({ c, v });
+const PAIRS = [["a","b"],["x","y"],["m","n"],["p","q"],["r","s"],["u","v"]];
+const SINGLE = ["a","b","x","y","z","k","m","n","p","t"];
+
+/* ---------- Monome und Polynome ---------- */
+const varStr = (v, explicit) => v.filter(x => x[1] > 0).map(([n, e]) => n + (explicit ? sup(e) : supE(e))).join("");
+function monoStr(m, lead = true){
+  const vs = varStr(m.v, false);
+  const a = Math.abs(m.c);
+  const body = (a === 1 && vs) ? vs : fmtNum(a) + vs;
+  if (lead) return (m.c < 0 ? "−" : "") + body;
+  return (m.c < 0 ? " − " : " + ") + body;
+}
+const sumStr = terms => terms.map((t, i) => monoStr(t, i === 0)).join("");
+const factorStr = m => m.c < 0 ? "(" + monoStr(m) + ")" : monoStr(m);
+function explicitStr(m){
+  const vs = m.v.slice().sort((x, y) => x[0] < y[0] ? -1 : 1).map(([n, e]) => n + sup(e)).join("");
+  if (!vs) return fmtNum(m.c);
+  return (m.c === 1 ? "" : m.c === -1 ? "−" : fmtNum(m.c)) + vs;
+}
+const keyOf = vars => Object.keys(vars).filter(k => vars[k] > 0).sort().map(k => k + vars[k]).join("");
+function clean(p){ for (const [k, t] of [...p]) if (Math.abs(t.c) < 1e-9) p.delete(k); return p; }
+function polyConst(c){ const r = new Map(); if (c !== 0) r.set("", { c, vars: {} }); return r; }
+function polyVar(v){ return new Map([[v + "1", { c: 1, vars: { [v]: 1 } }]]); }
+function polyAdd(p, q){ const r = new Map(); for (const src of [p, q]) for (const [k, t] of src){ const o = r.get(k); if (o) o.c += t.c; else r.set(k, { c: t.c, vars: { ...t.vars } }); } return clean(r); }
+function polyNeg(p){ const r = new Map(); for (const [k, t] of p) r.set(k, { c: -t.c, vars: { ...t.vars } }); return r; }
+function polyMul(p, q){
+  const r = new Map();
+  for (const [, a] of p) for (const [, b] of q){
+    const vars = { ...a.vars }; for (const v in b.vars) vars[v] = (vars[v] || 0) + b.vars[v];
+    const k = keyOf(vars); const o = r.get(k);
+    if (o) o.c += a.c * b.c; else r.set(k, { c: a.c * b.c, vars });
+  }
+  return clean(r);
+}
+function polyPow(p, n){ let r = polyConst(1); for (let i = 0; i < n; i++) r = polyMul(r, p); return r; }
+function monoPoly(m){ const vars = {}; for (const [n, e] of m.v) vars[n] = (vars[n] || 0) + e; const r = new Map(); r.set(keyOf(vars), { c: m.c, vars }); return clean(r); }
+const monoKey = m => { const vars = {}; for (const [n, e] of m.v) vars[n] = (vars[n] || 0) + e; return keyOf(vars); };
+function polyEq(p, q){ if (p.size !== q.size) return false; for (const [k, t] of p){ const o = q.get(k); if (!o || Math.abs(o.c - t.c) > 1e-9) return false; } return true; }
+function polyToMonos(p, order){
+  const keys = [...p.keys()];
+  if (order) keys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  return keys.map(k => { const t = p.get(k); return { c: t.c, v: Object.keys(t.vars).sort().map(n => [n, t.vars[n]]) }; });
+}
+const polyStr = (p, order) => p.size === 0 ? "0" : sumStr(polyToMonos(p, order));
+
+/* ---------- Eingabe lesen ---------- */
+const SUPMAP = { "⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9" };
+function normalize(s){
+  s = String(s).toLowerCase().replace(/\s+/g, "").replace(/[−–—]/g, "-").replace(/[·∙•×*⋅]/g, "*").replace(/,/g, ".");
+  s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, m => "^" + [...m].map(c => SUPMAP[c]).join(""));
+  return s;
+}
+function prettyInput(raw){
+  return normalize(raw).replace(/\^(\d+)/g, (_, d) => sup(d)).replace(/\*/g, " · ").replace(/-/g, " − ").replace(/\+/g, " + ").replace(/\./g, ",").replace(/^ [−+] /, m => m.trim());
+}
+function parse(s){
+  let i = 0;
+  const peek = () => s[i];
+  function expr(){
+    let neg = false;
+    if (peek() === "+" || peek() === "-"){ neg = peek() === "-"; i++; }
+    let r = term(); if (neg) r = polyNeg(r);
+    while (peek() === "+" || peek() === "-"){ const op = s[i++]; const t = term(); r = op === "+" ? polyAdd(r, t) : polyAdd(r, polyNeg(t)); }
+    return r;
+  }
+  function term(){
+    let r = factor();
+    while (i < s.length){
+      const c = peek();
+      if (c === "*"){ i++; r = polyMul(r, factor()); }
+      else if (/[a-z0-9.(]/.test(c)) r = polyMul(r, factor());
+      else break;
+    }
+    return r;
+  }
+  function factor(){
+    if (peek() === "-"){ i++; return polyNeg(factor()); }
+    let b = base();
+    if (peek() === "^"){ i++; const m = s.slice(i).match(/^\d+/); if (!m) throw new Error("exp"); i += m[0].length; b = polyPow(b, +m[0]); }
+    return b;
+  }
+  function base(){
+    const c = peek();
+    if (c === "("){ i++; const e = expr(); if (peek() !== ")") throw new Error("paren"); i++; return e; }
+    if (c !== undefined && /[0-9.]/.test(c)){ const m = s.slice(i).match(/^(\d+(\.\d+)?|\.\d+)/); if (!m) throw new Error("num"); i += m[0].length; return polyConst(parseFloat(m[0])); }
+    if (c !== undefined && /[a-z]/.test(c)){ i++; return polyVar(c); }
+    throw new Error("unexpected");
+  }
+  const r = expr();
+  if (i !== s.length) throw new Error("rest");
+  return r;
+}
+// Ist die Eingabe fertig vereinfacht? Gibt null zurück oder einen Hinweis.
+function simpleForm(s){
+  if (/[()]/.test(s)) return "Lass die Klammern weg.";
+  if (/\*\s*[\d.]/.test(s)) return "Multipliziere die Zahlen miteinander.";
+  s = s.replace(/\*/g, "");
+  if (/[+-]{2}/.test(s)) return "Fasse die Vorzeichen zusammen.";
+  const terms = s.match(/[+-]?[^+-]+/g) || [];
+  if (terms.join("") !== s) return "Prüfe die Rechenzeichen.";
+  const seen = new Set();
+  for (const t of terms){
+    const body = t.replace(/^[+-]/, "");
+    const m = body.match(/^(\d+(?:\.\d+)?|\.\d+)?((?:[a-z](?:\^\d+)?)*)$/);
+    if (!m || body === "") return "Schreibe jeden Term als Zahl gefolgt von den Variablen, z. B. 3a²b.";
+    if (m[1] !== undefined && parseFloat(m[1]) === 0) return "Terme mit der Zahl 0 davor kannst du weglassen.";
+    const vars = {};
+    for (const mm of m[2].matchAll(/([a-z])(?:\^(\d+))?/g)){
+      if (vars[mm[1]]) return "Die Variable " + mm[1] + " steht in einem Term mehrfach. Fasse sie als Potenz zusammen.";
+      const e = mm[2] === undefined ? 1 : +mm[2];
+      if (e === 0) return "Ein Exponent 0 ist hier nicht nötig.";
+      vars[mm[1]] = e;
+    }
+    const k = keyOf(vars);
+    if (seen.has(k)) return "Es gibt noch gleichartige Terme, die du zusammenfassen kannst.";
+    seen.add(k);
+  }
+  return null;
+}
+function evaluateInput(t, raw){
+  let s = normalize(raw);
+  if (!s) return { st: "info", msg: "Gib zuerst eine Antwort ein." };
+  if (t.form === "number" && /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  let p;
+  try { p = parse(s); } catch (e) { return { st: "info", msg: "Diese Eingabe kann ich nicht lesen. Prüfe Zeichen, Vorzeichen und Hochzahlen (z. B. a^2 oder a²)." }; }
+  if (!polyEq(p, t.expected)) return { st: "wrong", msg: t.diag ? t.diag(p) : "Noch nicht richtig. Versuche es noch einmal." };
+  if (t.form === "simple"){ const w = simpleForm(s); if (w) return { st: "almost", msg: "Der Term ist gleichwertig, aber noch nicht fertig vereinfacht. " + w }; }
+  if (t.form === "product" && /[\^\d]/.test(s)) return { st: "almost", msg: "Der Wert stimmt, aber schreibe den Term als Produkt ohne Hochzahlen, z. B. a · a · b." };
+  if (t.form === "number" && !/^-?\d+(\.\d+)?$/.test(s)) return { st: "almost", msg: "Rechne die Potenz ganz aus und gib nur die Zahl ein." };
+  return { st: "right", msg: "Richtig!" };
+}
+function diagMono(t){
+  return p => {
+    const e = [...t.expected.values()][0];
+    const pot = t.topic === "pot";
+    if (p.size !== 1) return pot ? "Das Ergebnis ist eine einzige Potenz. Zähle, wie oft die Variable als Faktor vorkommt." : "Beim Multiplizieren entsteht ein einziger Term. Ordne die Faktoren und fasse zusammen.";
+    const [k, s] = [...p][0];
+    const sameK = k === keyOf(e.vars), sameC = Math.abs(s.c - e.c) < 1e-9;
+    if (sameK && !sameC){
+      if (Math.abs(s.c + e.c) < 1e-9) return "Fast! Achte auf das Vorzeichen: (−) · (+) = (−) und (−) · (−) = (+).";
+      if (t.sumCoef !== undefined && Math.abs(s.c - t.sumCoef) < 1e-9) return "Die Zahlen werden multipliziert, nicht addiert.";
+      return "Die Variablen stimmen. Prüfe die Zahl davor.";
+    }
+    if (sameC && !sameK) return pot ? "Zähle noch einmal, wie oft die Variable als Faktor vorkommt." : "Die Zahl stimmt. Prüfe die Exponenten: Bei gleichen Variablen werden die Exponenten addiert.";
+    return pot ? "Noch nicht richtig. Bei gleichen Faktoren zählst du, wie oft der Faktor vorkommt: Das ist der Exponent." : "Noch nicht richtig. Ordne zuerst: Zahlen nach vorn, gleiche Variablen nebeneinander.";
+  };
+}
+function diagSum(t){
+  return p => {
+    const ek = new Set(t.expected.keys());
+    if ([...p.keys()].some(k => !ek.has(k))) return "Achtung: Beim Addieren und Subtrahieren ändern sich Variablen und Exponenten nicht. Fasse nur gleichartige Terme zusammen.";
+    if (p.size < t.expected.size) return "Es fehlt ein Term. Prüfe, ob du alle Termgruppen übernommen hast.";
+    let ok = 0;
+    for (const [k, s] of p){ const e = t.expected.get(k); if (e && Math.abs(e.c - s.c) < 1e-9) ok++; }
+    return ok + " von " + t.expected.size + " Termen stimmen. Prüfe bei den anderen die Vorzeichen und die Zahlen.";
+  };
+}
+
+/* ---------- Aufgaben erzeugen ---------- */
+const topics = [
+  { id: "pot", name: "Potenzen", tasks: [], openedAt: null,
+    intro: "<b>Merke:</b> Ein Produkt aus gleichen Faktoren schreibt man als <b>Potenz</b>: <span class=\"m\">a · a · a · a = a⁴</span>. Die <b>Basis</b> <span class=\"m\">a</span> ist der Faktor, der wiederholt wird. Der <b>Exponent</b> 4 (die Hochzahl) gibt an, wie oft er vorkommt. Beispiel mit Zahlen: <span class=\"m\">2³ = 2 · 2 · 2 = 8</span>. Achtung: <span class=\"m\">a + a + a + a = 4a</span>, aber <span class=\"m\">a · a · a · a = a⁴</span>." },
+  { id: "gl", name: "Gleichartige Terme", tasks: [], openedAt: null,
+    intro: "<b>Merke:</b> Terme sind gleichartig, wenn sie dieselben Variablen mit jeweils denselben Exponenten haben. Nur die Zahl davor darf verschieden sein. <span class=\"m\">3x²y</span> und <span class=\"m\">−5yx²</span> sind gleichartig, <span class=\"m\">3x²y</span> und <span class=\"m\">3xy²</span> nicht. Reine Zahlen wie <span class=\"m\">4</span> und <span class=\"m\">−9</span> sind untereinander gleichartig." },
+  { id: "add", name: "Addition und Subtraktion", tasks: [], openedAt: null,
+    intro: "<b>Merke:</b> Nur gleichartige Terme lassen sich zusammenfassen. Die Zahlen davor werden addiert bzw. subtrahiert, Variablen und Exponenten bleiben gleich: <span class=\"m\">5x²y + 3x²y = 8x²y</span>. Das Rechenzeichen gehört zum Term dahinter." }
+];
+const topicOf = t => topics.find(tp => tp.id === t.topic);
+function T(topic, kind, o){
+  const tp = topics.find(x => x.id === topic);
+  const t = Object.assign({ topic, kind, status: "open", tries: 0, helps: 0, h1At: null, h2At: null, n: tp.tasks.length + 1, id: topic + (tp.tasks.length + 1) }, o);
+  tp.tasks.push(t);
+  return t;
+}
+const rep = (x, n) => Array(n).fill(x);
+
+function genPotenzen(){
+  const calcList = [[2,5],[3,4],[5,3],[10,3],[4,3],[2,6],[3,3],[6,2],[7,2],[2,4],[10,4],[1,7],[9,2],[3,2]];
+  const calcTask = (b, e) => {
+    const val = Math.pow(b, e);
+    T("pot", "input", { prompt: "Berechne.", expr: b + sup(e), expected: polyConst(val), form: "number", noKeys: true,
+      h1: "Der Exponent gibt an, wie oft die Basis mit sich selbst multipliziert wird. " + b + sup(e) + " ist nicht " + b + " · " + e + ".",
+      h2: b + sup(e) + " = " + rep(b, e).join(" · "), sol: b + sup(e) + " = " + rep(b, e).join(" · ") + " = " + val,
+      diag: p => { const c = p.has("") ? p.get("").c : 0; return (p.size <= 1 && Math.abs(c - b * e) < 1e-9) ? "Du hast Basis und Exponent multipliziert. Der Exponent zählt, wie oft die Basis als Faktor vorkommt." : "Noch nicht richtig. Schreibe die Potenz als Produkt und rechne Schritt für Schritt."; } });
+  };
+  // 1 Produkt -> Potenz
+  { const v = pick(SINGLE), n = rnd(3, 6), expr = rep(v, n).join(" · ");
+    const t = T("pot", "input", { prompt: "Schreibe als Potenz.", expr, expected: monoPoly(M(1, [v, n])), form: "simple",
+      h1: "Eine Potenz ist die Kurzschreibweise für ein Produkt aus gleichen Faktoren. Der Exponent gibt an, wie oft der Faktor vorkommt.",
+      h2: "Zähle die Faktoren " + v + ": Es sind " + n + " Stück. Diese Zahl wird der Exponent.", sol: expr + " = " + v + sup(n) });
+    t.diag = diagMono(t); }
+  // 2 Potenz -> Produkt
+  { const v = pick(SINGLE), n = rnd(2, 5), m = M(1, [v, n]);
+    const t = T("pot", "input", { prompt: "Schreibe als Produkt ohne Hochzahlen.", expr: monoStr(m), expected: monoPoly(m), form: "product",
+      h1: "Der Exponent sagt, wie oft die Basis als Faktor vorkommt: x³ = x · x · x.",
+      h2: v + sup(n) + " bedeutet: " + v + " kommt " + n + "-mal als Faktor vor.", sol: monoStr(m) + " = " + rep(v, n).join(" · ") });
+    t.diag = diagMono(t); }
+  // 3 Begriffe: Basis oder Exponent?
+  { const useVar = Math.random() < .5, base = useVar ? pick(SINGLE) : String(rnd(2, 9)), e = rnd(2, 7);
+    const askBase = Math.random() < .5, item = askBase ? base : String(e);
+    const options = shuffle(["Basis", "Exponent", "Summand", "Ergebnis"]), correct = askBase ? "Basis" : "Exponent";
+    T("pot", "choice", { prompt: "Wie nennt man " + item + " in dieser Potenz?", expr: base + sup(e), options, correct: options.indexOf(correct),
+      h1: "Eine Potenz besteht aus der Basis (unten) und dem Exponenten (die kleine Hochzahl oben rechts).",
+      h2: "Die Basis wird mit sich selbst multipliziert. Der Exponent zählt, wie oft.",
+      sol: "In " + base + sup(e) + " ist " + base + " die Basis und " + e + " der Exponent. Also ist " + item + " " + (askBase ? "die Basis." : "der Exponent.") });
+  }
+  // 4 Basis und Exponent gegeben
+  { const v = pick(SINGLE), e = rnd(2, 6), m = M(1, [v, e]);
+    const t = T("pot", "input", { prompt: "Schreibe die Potenz mit dieser Basis und diesem Exponenten.", expr: "Basis: " + v + " Exponent: " + e, expected: monoPoly(m), form: "simple",
+      h1: "Die Basis ist die große Zahl oder Variable, der Exponent steht klein oben rechts daneben.",
+      h2: "Schreibe " + v + " und setze " + e + " als Hochzahl dazu (Taste ^ oder Knopf " + sup(e) + ").", sol: "Basis " + v + " und Exponent " + e + " ergeben " + v + sup(e) + "." });
+    t.diag = p => "Noch nicht richtig. Die Basis " + v + " steht unten, der Exponent " + e + " als Hochzahl oben rechts."; }
+  // 5 Summe oder Produkt?
+  { const v = pick(SINGLE), n = rnd(3, 5), mode = pick(["sum", "prod"]);
+    const expr = rep(v, n).join(mode === "sum" ? " + " : " · ");
+    const correct = mode === "sum" ? n + v : v + sup(n);
+    const options = shuffle([n + v, v + sup(n), n + " + " + v, v + sup(n + 1)]);
+    T("pot", "choice", { prompt: "Welcher Term ist gleichwertig?", expr, options, correct: options.indexOf(correct),
+      h1: mode === "sum" ? "Hier werden gleiche Summanden addiert. Das kann man als Produkt mit einer Zahl schreiben: a + a + a = 3 · a = 3a." : "Hier werden gleiche Faktoren multipliziert. Das schreibt man als Potenz.",
+      h2: "Summe: Summanden zählen, die Zahl kommt vor die Variable. Produkt: Faktoren zählen, die Zahl wird Exponent.",
+      sol: expr + " = " + correct });
+  }
+  // 6 und 7 Berechnen
+  const [c1, c2] = shuffle(calcList);
+  calcTask(...c1); calcTask(...c2);
+}
+
+function genGleichartig(){
+  const explicitVars = sig => sig.map(([n, e]) => n + sup(e)).join("");
+  const pairTask = type => {
+    const [a, b] = pick(PAIRS), v = pick(SINGLE);
+    let t1, t2, ans, why;
+    if (type === "same"){ const p = rnd(1, 3), q = rnd(1, 2); t1 = M(rnd(2, 9), [a, p], [b, q]); t2 = M(nz(1, 9), [b, q], [a, p]); ans = true;
+      why = "Beide Terme enthalten " + explicitVars([[a, p], [b, q]]) + ". Nur die Zahl davor ist verschieden, die Reihenfolge spielt keine Rolle."; }
+    else if (type === "order"){ const p = rnd(2, 3), q = p === 2 ? 3 : 2, c = rnd(2, 6); t1 = M(c, [a, p], [b, q]); t2 = M(pick([c, -c, rnd(2, 9)]), [b, q], [a, p]); ans = true;
+      why = "Die Reihenfolge der Variablen spielt keine Rolle (Kommutativgesetz). Beide Terme enthalten " + explicitVars([[a, p], [b, q]]) + "."; }
+    else if (type === "exp"){ const p = rnd(1, 3); let q; do { q = rnd(1, 3); } while (q === p); const c = rnd(2, 9); t1 = M(c, [v, p]); t2 = M(pick([c, rnd(2, 9)]), [v, q]); ans = false;
+      why = "Die Exponenten von " + v + " sind verschieden (" + p + " und " + q + ")."; }
+    else if (type === "swap"){ const c = rnd(2, 9); t1 = M(c, [a, 2], [b, 1]); t2 = M(c, [a, 1], [b, 2]); ans = false;
+      why = "Die Exponenten sind vertauscht: " + a + "²" + b + "¹ und " + a + "¹" + b + "²."; }
+    else if (type === "missing"){ const c = rnd(2, 9); t1 = M(c, [a, 1], [b, 1]); t2 = M(c, [a, 1]); ans = false;
+      why = "Im zweiten Term fehlt die Variable " + b + "."; }
+    else if (type === "numbers"){ const c = rnd(2, 12); let d; do { d = nz(1, 12); } while (d === c); t1 = M(c); t2 = M(d); ans = true;
+      why = "Beide Terme sind reine Zahlen ohne Variable. Zahlenterme sind untereinander gleichartig: " + c + (d < 0 ? " − " : " + ") + Math.abs(d) + " = " + (c + d) + "."; }
+    else { const c = rnd(2, 9); t1 = M(c); t2 = M(c, [v, 1]); ans = false;
+      why = "Der Term " + c + " enthält keine Variable, " + c + v + " enthält die Variable " + v + "."; }
+    T("gl", "yesno", { prompt: "Sind die beiden Terme gleichartig?", expr: monoStr(t1) + " und " + monoStr(t2), ans, why,
+      h1: "Gleichartig heißt: dieselben Variablen mit jeweils denselben Exponenten. Die Zahl davor ist egal.",
+      h2: "Schreibe beide Terme ordentlich mit allen Exponenten: " + explicitStr(t1) + " und " + explicitStr(t2) + ".",
+      sol: (ans ? "Ja. " : "Nein. ") + why });
+  };
+  const types = shuffle(["numbers", "const", pick(["same", "order"]), "exp", "swap"]);
+  types.forEach(pairTask);
+
+  const likeTask = sig => {
+    const [[a, p], [b, q]] = sig;
+    const target = M(rnd(2, 9), ...sig);
+    const tk = monoKey(target);
+    const ord = s => Math.random() < .5 ? s : s.slice().reverse();
+    const coefs = shuffle([-1, -3, 0.5, 5, 7, -2, 1.5, 4, -6]);
+    const right = coefs.slice(0, 3).map(c => M(c, ...ord(sig)));
+    const cands = [[[a, q], [b, p]], [[a, p + 1], [b, q]], [[a, p], [b, q + 1]], [[a, p]], [[b, q]], [[a, 1], [b, 1]], [[a, p + 1], [b, q + 1]]];
+    const seen = new Set([tk]); const wrong = [];
+    for (const c of shuffle(cands)){
+      const m = M(pick([target.c, rnd(2, 8), -rnd(1, 5)]), ...ord(c)); const k = monoKey(m);
+      if (seen.has(k)) continue; seen.add(k); wrong.push(m); if (wrong.length === 5) break;
+    }
+    const all = shuffle([...right.map(m => ({ s: monoStr(m), ok: true })), ...wrong.map(m => ({ s: monoStr(m), ok: false }))]);
+    T("gl", "multi", { prompt: "Markiere alle Terme, die gleichartig sind zu", expr: monoStr(target),
+      options: all.map(o => o.s), correctSet: all.map((o, i) => o.ok ? i : -1).filter(i => i >= 0),
+      h1: "Gleichartig heißt: dieselben Variablen mit jeweils denselben Exponenten. Die Zahl davor und die Reihenfolge der Variablen sind egal.",
+      h2: "Gesucht sind Terme mit genau " + explicitVars(sig) + ". Schreibe jeden Term mit allen Exponenten auf und vergleiche.",
+      sol: "Gleichartig zu " + monoStr(target) + " sind: " + all.filter(o => o.ok).map(o => o.s).join("; ") });
+  };
+  const [a, b] = pick(PAIRS);
+  likeTask([[a, 2], [b, 1]]);
+  let c2; do { c2 = pick(PAIRS); } while (c2[0] === a);
+  likeTask(pick([[[c2[0], 1], [c2[1], 2]], [[c2[0], 2], [c2[1], 2]], [[c2[0], 1], [c2[1], 1]]]));
+}
+
+function addTask(terms, note){
+  let expected = new Map();
+  for (const t of terms) expected = polyAdd(expected, monoPoly(t));
+  const keys = [];
+  for (const t of terms){ const k = monoKey(t); if (!keys.includes(k)) keys.push(k); }
+  const grouped = keys.flatMap(k => terms.filter(t => monoKey(t) === k));
+  const expr = sumStr(terms), groupedStr = sumStr(grouped), result = polyStr(expected, keys);
+  const t = T("add", "input", { prompt: "Fasse zusammen.", expr, expected, form: "simple",
+    h1: "Suche gleichartige Terme: gleiche Variablen mit gleichen Exponenten. Markiere sie in derselben Farbe. Das Rechenzeichen vor einem Term gehört zu ihm.",
+    h2: keys.length === 1 ? "Alle Terme sind gleichartig. Addiere bzw. subtrahiere die Zahlen davor, die Variable bleibt gleich." : groupedStr === expr ? "Die gleichartigen Terme stehen schon nebeneinander. Addiere bzw. subtrahiere jetzt die Zahlen davor." : "Gleichartige Terme nebeneinander: " + groupedStr + ". Addiere bzw. subtrahiere jetzt die Zahlen davor.",
+    sol: expr + (groupedStr === expr ? "" : " = " + groupedStr) + " = " + result + (note ? " (" + note + ")" : "") });
+  t.diag = diagSum(t);
+  return t;
+}
+function genAddition(){
+  const co = () => nz(1, 9);
+  const ok = (cs, groups) => groups.every(g => g.reduce((s, i) => s + cs[i], 0) !== 0);
+  const gen = (len, groups) => { let c; do { c = [rnd(2, 9), ...Array.from({ length: len - 1 }, co)]; } while (!ok(c, groups)); return c; };
+  // ohne Exponenten
+  { const v = pick(SINGLE), c = [rnd(2, 9), rnd(2, 9)]; addTask([M(c[0], [v, 1]), M(c[1], [v, 1])]); }
+  { const v = pick(SINGLE); let a, b; do { a = rnd(2, 9); b = rnd(2, 12); } while (a === b); addTask([M(a, [v, 1]), M(-b, [v, 1])]); }
+  { const v = pick(SINGLE), c = gen(3, [[0, 1, 2]]); addTask([M(c[0], [v, 1]), M(c[1], [v, 1]), M(c[2], [v, 1])]); }
+  { const [x, y] = pick(PAIRS), c = gen(3, [[0, 2]]); addTask([M(c[0], [x, 1]), M(c[1], [y, 1]), M(c[2], [x, 1])]); }
+  { const [x, y] = pick(PAIRS), c = gen(4, [[0, 2], [1, 3]]); addTask([M(c[0], [x, 1]), M(c[1], [y, 1]), M(c[2], [x, 1]), M(c[3], [y, 1])]); }
+  // mit Exponenten
+  { const v = pick(SINGLE), e = rnd(2, 3), c = gen(2, [[0, 1]]); addTask([M(c[0], [v, e]), M(c[1], [v, e])]); }
+  { const v = pick(SINGLE), c = gen(3, [[0, 2]]); addTask([M(c[0], [v, 2]), M(c[1], [v, 1]), M(c[2], [v, 2])]); }
+  { const v = pick(SINGLE), c = gen(4, [[0, 2], [1, 3]]); addTask([M(c[0], [v, 2]), M(c[1], [v, 1]), M(c[2], [v, 2]), M(c[3], [v, 1])]); }
+}
+function generateAll(){ for (const tp of topics) tp.tasks = []; genPotenzen(); genGleichartig(); genAddition(); }
+const pts = t => t.status === "right" ? Math.max(0, 1 - 0.25 * t.helps) : 0;
+function level(pct){
+  if (pct >= 85) return { k: "pokal", title: "Sehr gut", award: "Pokal" };
+  if (pct >= 70) return { k: "medaille", title: "Gut", award: "Medaille" };
+  if (pct >= 50) return { k: "kranz", title: "Zufriedenstellend", award: "Olivenkranz" };
+  return { k: "ananas", title: "Weiter üben!", award: "Ananas" };
+}
+// LOGIC END
+
+/* ---------- Auszeichnungen (SVG) ---------- */
+function starPath(cx, cy, R, r){ let d = ""; for (let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r : R; d += (i ? "L" : "M") + (cx + rr * Math.cos(a)).toFixed(1) + " " + (cy + rr * Math.sin(a)).toFixed(1); } return d + "Z"; }
+function awardSvg(k, size){
+  const open = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="' + (size || 120) + '" height="' + (size || 120) + '" role="img">';
+  if (k === "pokal") return open + '<title>Pokal</title><path d="M38 24H24a13 13 0 0 0 15 23M82 24h14a13 13 0 0 1-15 23" fill="none" stroke="#a87b12" stroke-width="5"/><path d="M36 16h48v24a24 24 0 0 1-48 0z" fill="#efbd36" stroke="#a87b12" stroke-width="3"/><path d="M46 22v16a14 14 0 0 0 8 12" fill="none" stroke="#fff3c4" stroke-width="4" stroke-linecap="round"/><rect x="53" y="63" width="14" height="17" fill="#d9a21f" stroke="#a87b12" stroke-width="3"/><rect x="38" y="80" width="44" height="10" rx="2" fill="#efbd36" stroke="#a87b12" stroke-width="3"/><rect x="32" y="90" width="56" height="16" rx="3" fill="#6b4520"/><rect x="46" y="94" width="28" height="8" rx="1" fill="#e2c178"/></svg>';
+  if (k === "medaille") return open + '<title>Medaille</title><path d="M38 6h16l14 44H54z" fill="#2f6fb0"/><path d="M82 6H66L52 50h14z" fill="#c8413b"/><circle cx="60" cy="76" r="32" fill="#efbd36" stroke="#a87b12" stroke-width="4"/><circle cx="60" cy="76" r="23" fill="none" stroke="#a87b12" stroke-width="2"/><path d="' + starPath(60, 77, 15, 6.5) + '" fill="#fff3c4" stroke="#a87b12" stroke-width="2"/></svg>';
+  if (k === "kranz"){
+    let s = open + '<title>Olivenkranz</title>';
+    for (let i = 0; i < 9; i++){
+      const th = 115 + i * 17, rad = th * Math.PI / 180, r = 40 + (i % 2 ? 5 : -3);
+      for (const side of [1, -1]){
+        const x = 60 + side * r * Math.cos(rad) * -1, y = 60 + r * Math.sin(rad) * -1 + 4;
+        const rot = side === 1 ? 180 - th : th - 180;
+        s += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="5" ry="11" fill="' + (i % 2 ? "#7c9a3d" : "#5f7f2c") + '" transform="rotate(' + (rot + 90).toFixed(1) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')"/>';
+        if (i % 3 === 1){ const ox = 60 + side * (r - 11) * Math.cos(rad) * -1, oy = 60 + (r - 11) * Math.sin(rad) * -1 + 4; s += '<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="3.6" fill="#3d4426"/>'; }
+      }
+    }
+    return s + '<path d="M50 100l10 6 10-6-4 14-6-5-6 5z" fill="#c8413b"/></svg>';
+  }
+  let lines = "";
+  for (let k2 = -60; k2 <= 60; k2 += 11){ lines += '<line x1="' + (60 + k2 - 40) + '" y1="36" x2="' + (60 + k2 + 40) + '" y2="116"/><line x1="' + (60 + k2 + 40) + '" y1="36" x2="' + (60 + k2 - 40) + '" y2="116"/>'; }
+  return open + '<title>Ananas</title><defs><clipPath id="pc"><ellipse cx="60" cy="78" rx="27" ry="34"/></clipPath></defs><path d="M60 48C50 34 42 26 30 22c12 10 18 20 22 28zM60 48c-2-16 0-30-1-42 7 12 9 26 6 42zM60 48c8-14 18-22 30-26-10 8-16 18-22 28z" fill="#3f8f3a"/><ellipse cx="60" cy="78" rx="27" ry="34" fill="#e8a33a"/><g clip-path="url(#pc)" stroke="#a8691a" stroke-width="2">' + lines + '</g><ellipse cx="60" cy="78" rx="27" ry="34" fill="none" stroke="#a8691a" stroke-width="3"/></svg>';
+}
+
+/* ---------- Oberfläche ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const state = { start: Date.now(), end: null, finished: false, active: "pot", confirm: false };
+const allTasks = () => topics.flatMap(tp => tp.tasks);
+const findTask = id => allTasks().find(t => t.id === id);
+function fmtTime(ms){ const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
+function fmtTimeLong(ms){ const s = Math.round(ms / 1000); const m = Math.floor(s / 60); return (m ? m + " min " : "") + (s % 60) + " s"; }
+
+function taskHtml(t){
+  let body = "";
+  if (t.kind === "input"){
+    body = '<div class="inrow"><label class="sr" for="in-' + t.id + '">Deine Antwort zu Aufgabe ' + t.n + '</label><input id="in-' + t.id + '" class="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + (t.form === "number" ? "Zahl eingeben" : t.form === "product" ? "z. B. a·a·a" : "z. B. 3a^2 + 2b") + '"><button class="btn" data-act="check">Prüfen</button></div>';
+    if (!t.noKeys) body += '<div class="keys">Eingabehilfe: ' + ["²", "³", "⁴", "⁵", "·", "−"].map(k => '<button class="key" data-key="' + k + '" aria-label="' + k + ' einfügen">' + k + '</button>').join("") + '</div>';
+    body += '<div class="preview" aria-live="polite">So lese ich deine Eingabe: <span class="m"></span></div>';
+  } else if (t.kind === "choice"){
+    body = '<div class="opts">' + t.options.map((o, i) => '<button class="opt' + (/^[A-Z]/.test(o) ? ' word' : '') + '" data-act="choose" data-i="' + i + '">' + esc(o) + '</button>').join("") + '</div>';
+  } else if (t.kind === "yesno"){
+    body = '<div class="opts"><button class="opt yn" data-act="yn" data-v="1">Ja</button><button class="opt yn" data-act="yn" data-v="0">Nein</button></div>';
+  } else {
+    body = '<div class="opts">' + t.options.map((o, i) => '<button class="opt" data-act="toggle" data-i="' + i + '" aria-pressed="false">' + esc(o) + '</button>').join("") + '</div><div><button class="btn" data-act="checkmulti">Prüfen</button></div>';
+  }
+  return '<article class="task" id="t-' + t.id + '" data-id="' + t.id + '"><div class="thead"><span class="tnum">' + t.n + '</span><div class="q"><p class="prompt">' + esc(t.prompt) + '</p><div class="expr">' + esc(t.expr) + '</div></div><span class="pill">offen</span></div>' + body +
+    '<p class="fb" role="status" aria-live="polite"></p><div class="helps"><button class="hbtn" data-act="help" data-h="1">Hilfe 1</button><button class="hbtn" data-act="help" data-h="2">Hilfe 2</button><button class="hbtn" data-act="help" data-h="3">Lösung</button></div>' +
+    '<div class="hbox" data-box="1" hidden><b>Hilfe 1</b>' + esc(t.h1) + '</div><div class="hbox" data-box="2" hidden><b>Hilfe 2</b><span class="m">' + esc(t.h2) + '</span></div><div class="hbox sol" data-box="3" hidden><b>Lösung</b><span class="m">' + esc(t.sol) + '</span></div></article>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+
+function render(){
+  const tabs = $("#tabs"), main = $("#main");
+  tabs.innerHTML = topics.map((tp, i) => '<button class="tab" role="tab" id="tab-' + tp.id + '" data-tab="' + tp.id + '" aria-controls="sec-' + tp.id + '">' + (i + 1) + ". " + tp.name + ' <span class="badge" data-badge="' + tp.id + '"></span></button>').join("") +
+    '<button class="tab" role="tab" id="tab-res" data-tab="res" aria-controls="sec-res">Ergebnis</button>';
+  main.innerHTML = topics.map(tp => '<section id="sec-' + tp.id + '" role="tabpanel" aria-labelledby="tab-' + tp.id + '" hidden><h2 class="sr">' + tp.name + '</h2><div class="merke">' + tp.intro + '</div><div class="tasks">' + tp.tasks.map(taskHtml).join("") + '</div></section>').join("") +
+    '<section id="sec-res" role="tabpanel" aria-labelledby="tab-res" hidden><h2>Dein Ergebnis</h2><p class="rules">Hier siehst du deinen Stand. Wenn du fertig bist, gib ab. Danach erhältst du deine Urkunde.</p><div class="tablewrap"><table class="res" id="restable"></table></div>' +
+    '<div class="levels">' + [["pokal", "Pokal", "ab 85 %: sehr gut"], ["medaille", "Medaille", "ab 70 %: gut"], ["kranz", "Olivenkranz", "ab 50 %: zufriedenstellend"], ["ananas", "Ananas", "unter 50 %: weiter üben"]].map(([k, n, d]) => '<div class="lv">' + awardSvg(k, 46) + '<div><b>' + n + '</b><br>' + d + '</div></div>').join("") + '</div>' +
+    '<div class="submit" id="submit"></div><div id="certarea"></div></section>';
+  showTab(state.active);
+}
+function showTab(id){
+  state.active = id;
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === id ? "true" : "false"));
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "sec-" + id);
+  const tp = topics.find(x => x.id === id);
+  if (tp && !tp.openedAt) tp.openedAt = Date.now();
+  if (id === "res") renderResults();
+  tick();
+}
+function updateBadges(){
+  for (const tp of topics){
+    const done = tp.tasks.filter(t => t.status !== "open").length;
+    const b = document.querySelector('[data-badge="' + tp.id + '"]');
+    if (b){ b.textContent = done + "/" + tp.tasks.length; b.classList.toggle("full", done === tp.tasks.length); }
+  }
+}
+const PILL = { open: "offen", right: "richtig", wrong: "falsch", solution: "Lösung angesehen" };
+function finalize(t){
+  const card = $("#t-" + t.id);
+  card.classList.remove("right", "wrong", "solution"); if (t.status !== "open") card.classList.add(t.status);
+  const pill = $(".pill", card); pill.textContent = PILL[t.status]; pill.className = "pill " + t.status;
+  if (t.status !== "open") card.querySelectorAll("input,.btn,.key,.opt").forEach(el => el.disabled = true);
+  updateBadges(); tick();
+}
+function setFb(t, cls, msg){ const fb = $("#t-" + t.id + " .fb"); fb.className = "fb " + cls; fb.textContent = msg; }
+
+function helpBtnState(t, h){
+  const tp = topicOf(t), now = Date.now(), done = t.status !== "open" || state.finished;
+  if (h === 1){
+    if (t.h1At) return ["opened"];
+    if (done) return ["done"];
+    const r = (tp.openedAt || now) + LOCK * 1000; return now < r ? ["wait", Math.ceil((r - now) / 1000)] : ["ready"];
+  }
+  if (h === 2){
+    if (t.h2At) return ["opened"];
+    if (done || !t.h1At) return ["done"];
+    const r = t.h1At + LOCK * 1000; return now < r ? ["wait", Math.ceil((r - now) / 1000)] : ["ready"];
+  }
+  if (t.status === "solution") return ["opened"];
+  if (done || !t.h2At) return ["done"];
+  const r = t.h2At + LOCK * 1000; return now < r ? ["wait", Math.ceil((r - now) / 1000)] : ["ready"];
+}
+function tick(){
+  $("#clock").textContent = fmtTime((state.end || Date.now()) - state.start);
+  const tp = topics.find(x => x.id === state.active); if (!tp) return;
+  for (const t of tp.tasks){
+    const card = $("#t-" + t.id); if (!card) continue;
+    [1, 2, 3].forEach(h => {
+      const b = card.querySelector('[data-h="' + h + '"]'); const [st, n] = helpBtnState(t, h);
+      const label = h === 3 ? "Lösung" : "Hilfe " + h;
+      b.textContent = st === "opened" ? label + " ✓" : st === "wait" ? label + " (in " + n + " s)" : label;
+      b.disabled = st !== "ready";
+    });
+  }
+}
+function openHelp(t, h){
+  if (helpBtnState(t, h)[0] !== "ready") return;
+  const now = Date.now();
+  if (h === 1){ t.h1At = now; t.helps++; }
+  else if (h === 2){ t.h2At = now; t.helps++; }
+  else { t.status = "solution"; setFb(t, "wrong", "Du hast dir die Lösung angesehen. Diese Aufgabe gibt keinen Punkt."); }
+  $("#t-" + t.id + ' [data-box="' + h + '"]').hidden = false;
+  if (h === 3) finalize(t); else tick();
+}
+
+document.addEventListener("click", e => {
+  const tabBtn = e.target.closest(".tab"); if (tabBtn){ showTab(tabBtn.dataset.tab); return; }
+  const card = e.target.closest(".task"); const btn = e.target.closest("button");
+  if (!card || !btn || state.finished) return;
+  const t = findTask(card.dataset.id); if (!t || btn.disabled) return;
+  if (btn.dataset.act === "help") return openHelp(t, +btn.dataset.h);
+  if (t.status !== "open") return;
+  if (btn.dataset.key){ const inp = $("input.ans", card); const s = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? inp.value.length; inp.value = inp.value.slice(0, s) + btn.dataset.key + inp.value.slice(en); inp.focus(); inp.setSelectionRange(s + btn.dataset.key.length, s + btn.dataset.key.length); updatePreview(inp); return; }
+  if (btn.dataset.act === "check") return checkInputTask(t);
+  if (btn.dataset.act === "choose"){
+    const i = +btn.dataset.i, ok = i === t.correct;
+    btn.classList.add(ok ? "is-right" : "is-wrong");
+    card.querySelectorAll(".opt")[t.correct].classList.add("is-right");
+    t.status = ok ? "right" : "wrong"; if (!ok) t.tries++;
+    setFb(t, ok ? "right" : "wrong", ok ? "Richtig! " + t.sol : "Leider falsch. Richtig ist: " + t.sol);
+    return finalize(t);
+  }
+  if (btn.dataset.act === "yn"){
+    const v = btn.dataset.v === "1", ok = v === t.ans;
+    btn.classList.add(ok ? "is-right" : "is-wrong");
+    t.status = ok ? "right" : "wrong"; if (!ok) t.tries++;
+    setFb(t, ok ? "right" : "wrong", (ok ? "Richtig! " : "Leider falsch. ") + t.sol);
+    return finalize(t);
+  }
+  if (btn.dataset.act === "toggle"){ btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed") === "true" ? "false" : "true"); return; }
+  if (btn.dataset.act === "checkmulti"){
+    const sel = [...card.querySelectorAll(".opt")].map((b, i) => b.getAttribute("aria-pressed") === "true" ? i : -1).filter(i => i >= 0);
+    if (!sel.length){ setFb(t, "info", "Markiere zuerst mindestens einen Term."); return; }
+    const ok = sel.length === t.correctSet.length && sel.every(i => t.correctSet.includes(i));
+    if (ok){ t.status = "right"; card.querySelectorAll(".opt").forEach((b, i) => { if (t.correctSet.includes(i)) b.classList.add("is-right"); }); setFb(t, "right", "Richtig! Du hast alle passenden Terme gefunden."); return finalize(t); }
+    t.tries++;
+    const wrongSel = sel.filter(i => !t.correctSet.includes(i)).length, missing = t.correctSet.filter(i => !sel.includes(i)).length;
+    setFb(t, "wrong", "Noch nicht ganz. " + (wrongSel ? "Mindestens eine Markierung passt nicht. " : "") + (missing ? "Es fehlt noch mindestens ein Term." : ""));
+  }
+});
+function checkInputTask(t){
+  const inp = $("#in-" + t.id); const r = evaluateInput(t, inp.value);
+  if (r.st === "wrong") t.tries++;
+  if (r.st === "right"){ t.status = "right"; setFb(t, "right", "Richtig!"); finalize(t); return; }
+  setFb(t, r.st === "wrong" ? "wrong" : "almost", r.msg);
+}
+function updatePreview(inp){ const pv = inp.closest(".task").querySelector(".preview .m"); if (pv) pv.textContent = inp.value.trim() ? prettyInput(inp.value) : ""; }
+document.addEventListener("input", e => { if (e.target.matches("input.ans")) updatePreview(e.target); });
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input.ans")){ const t = findTask(e.target.closest(".task").dataset.id); if (t && t.status === "open" && !state.finished) checkInputTask(t); } });
+
+function stats(){
+  return topics.map(tp => { const s = { name: tp.name, n: tp.tasks.length, right: 0, wrong: 0, open: 0, sol: 0, helps: 0, tries: 0, pts: 0 };
+    for (const t of tp.tasks){ if (t.status === "right") s.right++; else if (t.status === "open") s.open++; else if (t.status === "solution") s.sol++; else s.wrong++; s.helps += t.helps; s.tries += t.tries; s.pts += pts(t); }
+    return s; });
+}
+function totals(st){ const tot = { n: 0, right: 0, wrong: 0, open: 0, sol: 0, helps: 0, tries: 0, pts: 0 }; for (const s of st) for (const k in tot) tot[k] += s[k]; return tot; }
+const fmtPts = x => fmtNum(x);
+function resTable(st, tot, compact){
+  const head = compact ? ["Thema", "richtig", "Hilfen", "Lösungen", "Punkte"] : ["Thema", "richtig", "falsch", "offen", "Hilfen", "Lösungen", "Fehlversuche", "Punkte"];
+  const row = s => compact ? [s.name, s.right + "/" + s.n, s.helps, s.sol, fmtPts(s.pts)] : [s.name, s.right + "/" + s.n, s.wrong, s.open, s.helps, s.sol, s.tries, fmtPts(s.pts)];
+  return "<thead><tr>" + head.map(h => "<th>" + h + "</th>").join("") + "</tr></thead><tbody>" + st.map(s => "<tr>" + row(s).map(c => "<td>" + esc(c) + "</td>").join("") + "</tr>").join("") +
+    "</tbody><tfoot><tr>" + row(Object.assign({ name: "Gesamt" }, tot)).map(c => "<td>" + esc(c) + "</td>").join("") + "</tr></tfoot>";
+}
+function renderResults(){
+  const st = stats(), tot = totals(st);
+  $("#restable").innerHTML = resTable(st, tot, false);
+  const sub = $("#submit");
+  if (state.finished){ sub.innerHTML = ""; return; }
+  if (!state.confirm){
+    sub.innerHTML = '<p class="fb info" id="submsg">' + (tot.open ? "Noch offen: " + tot.open + " Aufgabe" + (tot.open === 1 ? "" : "n") + ". Offene Aufgaben zählen 0 Punkte." : "Du hast alle Aufgaben bearbeitet.") + '</p><div><button class="btn" id="submitbtn">Abgeben und Urkunde erstellen</button></div>';
+  } else {
+    sub.innerHTML = '<p class="fb almost">Wirklich abgeben? Danach kannst du nichts mehr ändern.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="yesbtn">Ja, abgeben</button><button class="btn ghost" id="nobtn">Weiter üben</button></div>';
+  }
+}
+document.addEventListener("click", e => {
+  if (e.target.id === "submitbtn"){
+    if (!$("#name").value.trim()){ $("#submsg").className = "fb wrong"; $("#submsg").textContent = "Trage oben zuerst deinen Namen ein."; $("#name").focus(); return; }
+    state.confirm = true; renderResults();
+  } else if (e.target.id === "nobtn"){ state.confirm = false; renderResults(); }
+  else if (e.target.id === "yesbtn"){ submit(); }
+  else if (e.target.id === "pdfbtn"){ savePdf(); }
+});
+function result(){
+  const st = stats(), tot = totals(st), pct = Math.round(tot.pts / tot.n * 100);
+  return { st, tot, pct, lv: level(pct), name: $("#name").value.trim(), time: fmtTimeLong(state.end - state.start), date: new Date(state.end).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) };
+}
+function submit(){
+  state.finished = true; state.end = Date.now(); state.confirm = false;
+  $("#name").disabled = true;
+  document.querySelectorAll(".task input, .task .btn, .task .key, .task .opt, .hbtn").forEach(el => el.disabled = true);
+  renderResults();
+  const r = result();
+  const area = $("#certarea");
+  area.innerHTML = '<div class="cert" id="cert"><div class="kick">Urkunde</div><div>Übungsblatt „Terme zusammenfassen“ für</div><div class="nm"></div><div class="award">' + awardSvg(r.lv.k, 170) + '</div><div class="lvl">' + esc(r.lv.title) + " – " + esc(r.lv.award) + '</div><div>' + fmtPts(r.tot.pts) + " von " + r.tot.n + " Punkten (" + r.pct + ' %)</div><div class="tablewrap" style="width:100%;display:flex;justify-content:center"><table class="res">' + resTable(r.st, r.tot, true) + '</table></div><div class="meta">Bearbeitungszeit: ' + r.time + " · Fehlversuche: " + r.tot.tries + " · Datum: " + r.date + '</div></div>' +
+    '<div class="submit"><div><button class="btn" id="pdfbtn">Urkunde als PDF speichern</button></div><p class="fb" id="pdfmsg"></p></div>';
+  $(".nm", area).textContent = r.name;
+  tick();
+  $("#cert").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+
+/* ---------- PDF ---------- */
+function loadImg(src){ return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
+function drawCert(g, W, H, r, img){
+  g.fillStyle = "#fffdf6"; g.fillRect(0, 0, W, H);
+  g.strokeStyle = "#1f4e79"; g.lineWidth = 12; g.strokeRect(60, 60, W - 120, H - 120); g.lineWidth = 3; g.strokeRect(86, 86, W - 172, H - 172);
+  g.textAlign = "center"; g.fillStyle = "#1f4e79";
+  g.font = '800 120px "Bricolage Grotesque", sans-serif'; g.fillText("Urkunde", W / 2, 270);
+  g.fillStyle = "#1c2633"; g.font = '38px "Atkinson Hyperlegible", sans-serif';
+  g.fillText("Übungsblatt „Terme zusammenfassen“", W / 2, 350); g.fillText("für", W / 2, 420);
+  g.font = '700 70px "Atkinson Hyperlegible", sans-serif'; g.fillText(r.name, W / 2, 510, W - 260);
+  if (img) g.drawImage(img, W / 2 - 170, 560, 340, 340);
+  g.font = '800 62px "Bricolage Grotesque", sans-serif'; g.fillText(r.lv.title + " – " + r.lv.award, W / 2, img ? 975 : 640);
+  g.font = '38px "Atkinson Hyperlegible", sans-serif'; g.fillText(fmtPts(r.tot.pts) + " von " + r.tot.n + " Punkten (" + r.pct + " %)", W / 2, img ? 1040 : 710);
+  const cols = [[170, "left", "Thema"], [700, "right", "richtig"], [840, "right", "Hilfen"], [990, "right", "Lösungen"], [1090, "right", "Punkte"]];
+  let y = img ? 1150 : 820;
+  g.font = '700 32px "Atkinson Hyperlegible", sans-serif';
+  cols.forEach(([x, a, h]) => { g.textAlign = a; g.fillText(h, x, y); });
+  g.strokeStyle = "#1c2633"; g.lineWidth = 2; g.beginPath(); g.moveTo(160, y + 16); g.lineTo(1100, y + 16); g.stroke();
+  const rows = [...r.st, Object.assign({ name: "Gesamt" }, r.tot)];
+  rows.forEach((s, i) => {
+    y += 62; const last = i === rows.length - 1;
+    if (last){ g.beginPath(); g.moveTo(160, y - 44); g.lineTo(1100, y - 44); g.stroke(); }
+    g.font = (last ? "700 " : "") + '32px "Atkinson Hyperlegible", sans-serif';
+    const vals = [s.name, s.right + "/" + s.n, String(s.helps), String(s.sol), fmtPts(s.pts)];
+    cols.forEach(([x, a], j) => { g.textAlign = a; g.fillText(vals[j], x, y); });
+  });
+  g.textAlign = "center"; g.fillStyle = "#4c5a6b"; g.font = '30px "Atkinson Hyperlegible", sans-serif';
+  g.fillText("Bearbeitungszeit: " + r.time + "  ·  Fehlversuche: " + r.tot.tries + "  ·  Datum: " + r.date, W / 2, H - 150);
+}
+async function buildPdf(){
+  const r = result(), W = 1240, H = 1754;
+  try { await Promise.all([document.fonts.load('800 120px "Bricolage Grotesque"'), document.fonts.load('700 70px "Atkinson Hyperlegible"'), document.fonts.load('38px "Atkinson Hyperlegible"')]); } catch (e) {}
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d");
+  let img = null; try { img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(awardSvg(r.lv.k, 340))); } catch (e) {}
+  drawCert(g, W, H, r, img);
+  let data;
+  try { data = cv.toDataURL("image/jpeg", 0.92); }
+  catch (e) { const cv2 = document.createElement("canvas"); cv2.width = W; cv2.height = H; drawCert(cv2.getContext("2d"), W, H, r, null); data = cv2.toDataURL("image/jpeg", 0.92); }
+  const pdf = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+  pdf.addImage(data, "JPEG", 0, 0, 210, 297);
+  return pdf.output("blob");
+}
+async function savePdf(){
+  const msg = $("#pdfmsg"); msg.className = "fb info"; msg.textContent = "Die PDF-Datei wird erstellt …";
+  try {
+    if (!window.jspdf){ msg.textContent = "Die PDF-Funktion konnte nicht geladen werden. Mache stattdessen ein Bildschirmfoto der Urkunde."; return; }
+    let dl = null;
+    try { if (window.claude && typeof window.claude.use === "function") dl = await window.claude.use("downloads"); } catch (e) {}
+    if (!dl){ msg.textContent = "Speichern ist in dieser Ansicht nicht möglich. Mache stattdessen ein Bildschirmfoto der Urkunde."; return; }
+    const blob = await buildPdf();
+    const safe = (result().name || "Urkunde").replace(/[^\wäöüÄÖÜß-]+/g, "_");
+    await dl.save({ filename: "Urkunde_Terme_" + safe + ".pdf", data: blob });
+    msg.className = "fb right"; msg.textContent = "Die Urkunde wurde gespeichert. Du kannst sie jetzt abgeben.";
+  } catch (e) {
+    msg.className = "fb wrong";
+    msg.textContent = e && e.code === "declined" ? "Speichern abgebrochen. Du kannst es noch einmal versuchen." : e && e.code === "rate_limited" ? "Bitte warte kurz und versuche es dann noch einmal." : "Das Speichern hat nicht geklappt. Versuche es noch einmal oder mache ein Bildschirmfoto der Urkunde.";
+  }
+}
+
+generateAll();
+render();
+updateBadges();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
